@@ -727,7 +727,7 @@
             });
 
             const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
-            const grandTotal = sum + extraFee;
+            const grandTotal = sum + (parseFloat(document.getElementById("extra-fee").value) || 0);
 
             let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>';
 
