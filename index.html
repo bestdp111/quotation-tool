@@ -627,10 +627,9 @@
             const phone = document.getElementById('customer-phone').value.trim() || '';
             const date = document.getElementById('quote-date').value || '';
             const remark = document.getElementById('remark').value.trim() || '';
-            const steelPrice = document.getElementById('steel-price').value || '5000';
-            const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
             const projectName = document.getElementById('project-name').value.trim() || '';
             const projectAddr = document.getElementById('project-addr').value.trim() || '';
+            const steelPrice = document.getElementById('steel-price').value || '5000';
 
             const rows = document.getElementById('table-body').querySelectorAll('tr');
             const items = [];
@@ -715,6 +714,7 @@
                 dataRows += '</tr>';
             });
 
+            const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
             const grandTotal = sum + extraFee;
 
             let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>';
