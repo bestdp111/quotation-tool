@@ -686,14 +686,25 @@
             const rows = document.getElementById('table-body').querySelectorAll('tr');
             const items = [];
             rows.forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                if (inputs.length >= 5 && parseFloat(inputs[1].value)) {
-                    items.push({
-                        name: inputs[0].value.trim() || '水平桥架',
-                        spec: inputs[1].value + '×' + inputs[2].value + '×' + inputs[3].value,
-                        qty: parseFloat(inputs[4].value) || 0,
-                        price: calcUnitPrice(parseFloat(inputs[1].value), parseFloat(inputs[2].value), parseFloat(inputs[3].value)),
-                    });
+                const wInput = row.querySelector('.w-input');
+                if (wInput && parseFloat(wInput.value)) {
+                    const hInput = row.querySelector('.h-input');
+                    const thickInput = row.querySelector('.thick-input');
+                    const qtyInput = row.querySelector('.qty-input');
+                    const selectEl = row.querySelector('select');
+                    const pt = selectEl ? selectEl.value : '水平桥架';
+                    const w = parseFloat(wInput.value);
+                    const h = parseFloat(hInput.value);
+                    const thick = parseFloat(thickInput.value);
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const spec = w + '×' + h + '×' + thick.toFixed(1);
+                    let price;
+                    if (typeof getProductPrice === 'function') {
+                        price = getProductPrice(w, h, thick, pt).unitPrice;
+                    } else {
+                        price = calcUnitPrice(w, h, thick);
+                    }
+                    items.push({ name: pt, spec: spec, qty: qty, price: price });
                 }
             });
 
