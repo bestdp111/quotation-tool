@@ -726,6 +726,7 @@
                 dataRows += '</tr>';
             });
 
+            const steelPrice = document.getElementById('steel-price').value || '5000';
             const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
             const grandTotal = sum + (parseFloat(document.getElementById("extra-fee").value) || 0);
 
