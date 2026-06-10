@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 桥架报价工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #f0f2f5;
+            font-family: "Microsoft YaHei", sans-serif;
+            padding: 20px;
+        }
+
+        .app { max-width: 900px; margin: 0 auto; }
+
+        /* ===== 头部 ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 24px; color: #1a1a2e; }
+        .header .subtitle { font-size: 13px; color: #999; }
+        .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: #1a1a2e; color: #fff; }
+        .btn-primary:hover { background: #2d2d44; }
+        .btn-outline { background: #fff; color: #1a1a2e; border: 1px solid #d0d0d0; }
+        .btn-outline:hover { border-color: #1a1a2e; }
+        .btn-danger { background: #fff; color: #e94560; border: 1px solid #e94560; }
+        .btn-danger:hover { background: #fff0f0; }
+
+        /* ===== 卡片容器 ===== */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* ===== 客户信息 ===== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 700px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+
+        .info-item label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .info-item input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.15s;
+        }
+        .info-item input:focus { border-color: #1a1a2e; }
+
+        /* ===== 钢价大卡片 ===== */
+        .steel-price-card {
+            background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .steel-price-card .label-text {
+            font-size: 15px;
+            opacity: 0.8;
+        }
+        .steel-price-input {
+            width: 120px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+        }
+        .steel-price-input:focus { border-color: #4ecca3; }
+        .steel-price-card .unit { font-size: 15px; opacity: 0.7; }
+
+        /* ===== 公式提示 ===== */
+        .formula-hint {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+            font-family: Consolas, monospace;
+        }
+
+        /* ===== 产品表格 ===== */
+        .table-wrapper { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead th {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #444;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+        tbody td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+        tbody input {
+            width: 100%;
+            padding: 8px 4px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+            outline: none;
+            background: transparent;
+            transition: all 0.15s;
+        }
+        tbody input:hover { background: #fafafa; }
+        tbody input:focus {
+            border-color: #1a1a2e;
+            background: #fff;
+        }
+        tbody input.name-input { text-align: left; min-width: 80px; }
+
+        .auto-cell {
+            font-weight: bold;
+            color: #1a1a2e;
+            text-align: right;
+            padding-right: 8px;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+        .auto-cell.empty { color: #ccc; }
+
+        .delete-row-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .delete-row-btn:hover { color: #e94560; background: #fff0f0; }
+
+        /* ===== 添加按钮 ===== */
+        .add-row-row td { border-bottom: none; }
+        .add-row-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px dashed #d0d0d0;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .add-row-btn:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+        /* ===== 合计区 ===== */
+        .totals {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .totals-box { text-align: right; min-width: 260px; }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 15px;
+        }
+        .total-row .label { color: #666; }
+        .total-row .value { font-weight: bold; color: #1a1a2e; min-width: 100px; }
+        .total-row.grand {
+            font-size: 20px; color: #e94560;
+            padding-top: 8px; border-top: 2px solid #e0e0e0; margin-top: 4px;
+        }
+        .total-row.grand .value { color: #e94560; }
+
+        .tax-input {
+            width: 50px;
+            padding: 2px 6px;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* ===== 已保存列表 ===== */
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .saved-item:hover { background: #fafafa; }
+        .saved-item .saved-name { font-weight: bold; color: #1a1a2e; }
+        .saved-item .saved-meta { font-size: 13px; color: #999; margin-top: 2px; }
+        .saved-item .saved-total { font-size: 18px; font-weight: bold; color: #e94560; }
+
+        /* ===== 底部 ===== */
+        .footer { text-align: center; color: #ccc; font-size: 12px; margin-top: 24px; }
+
+        /* ===== 打印 ===== */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .header-btns, .add-row-row, .delete-row-btn, .footer, .saved-list { display: none !important; }
+            .card { box-shadow: none; border: none; padding: 12px 0; }
+            .steel-price-card { background: #f8f9fa !important; color: #1a1a2e !important; }
+            .steel-price-input { background: #fff; color: #1a1a2e; border-color: #d0d0d0; }
+            thead th { background: #fff; }
+            tbody input { border: none; padding: 4px; }
+        }
+
+        /* ===== Toast 提示 ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 999;
+            animation: fadeUp 2s forwards;
+        }
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- 头部 -->
+        <div class="header">
+            <div>
+                <h1>📋 桥架报价工具</h1>
+                <div class="subtitle">槽式桥架 · 自动算价</div>
+            </div>
+            <div class="header-btns">
+                <button class="btn btn-primary" onclick="exportServer()">📥 一键导出 Excel</button>
+                <button class="btn btn-outline" onclick="exportExcel()">📥 导出 Excel（备用）</button>
+                <button class="btn btn-outline" onclick="saveQuotation()">💾 保存报价</button>
+                <button class="btn btn-outline" onclick="loadList()">📂 打开已保存</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ 打印</button>
+            </div>
+        </div>
+
+        <!-- 客户信息 + 钢价 -->
+        <div class="card">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>客户名称</label>
+                    <input type="text" id="customer-name" placeholder="公司名或联系人" />
+                </div>
+                <div class="info-item">
+                    <label>联系电话</label>
+                    <input type="text" id="customer-phone" placeholder="手机号" />
+                </div>
+                <div class="info-item">
+                    <label>报价日期</label>
+                    <input type="date" id="quote-date" />
+                </div>
+                <div class="info-item">
+                    <label>🔩 今日板材价格 <span style="color:#e94560;">★</span></label>
+                    <input type="number" id="steel-price" value="5000" min="0" step="100" onchange="calcAll()" style="font-size:18px;font-weight:bold;border:2px solid #e94560;" />
+                    <span style="font-size:12px;color:#999;">元/吨</span>
+                </div>
+            </div>
+            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:13px;color:#666;font-weight:bold;display:block;margin-bottom:4px;">项目名称</label>
+                    <input type="text" id="project-name" placeholder="项目名称" style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #d0d0d0;font-size:14px;outline:none;" />
+                </div>
+                <div>
+                    <label style="font-size:13px;color:#666;font-weight:bold;display:block;margin-bottom:4px;">项目地址</label>
+                    <input type="text" id="project-addr" placeholder="项目地址" style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #d0d0d0;font-size:14px;outline:none;" />
+                </div>
+            </div>
+            <div style="margin-top:10px;">
+                <label style="font-size:13px;color:#666;font-weight:bold;display:block;margin-bottom:4px;">备注</label>
+                <input type="text" id="remark" placeholder="比如：含运费、不含税、交货期7天..." style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #d0d0d0;font-size:14px;outline:none;" />
+            </div>
+            <div class="formula-hint">
+                📐 公式：<b>单价 = (((宽+高)×2 + 60折弯) × 板厚 × 7.85 × 吨价÷1000) ÷ 1000</b>，结果四舍五入到元
+            </div>
+        </div>
+
+        <!-- 产品表格 -->
+        <div class="card">
+            <div class="card-title">📦 桥架明细</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>产品类型</th>
+                            <th>宽 (mm)</th>
+                            <th>高 (mm)</th>
+                            <th>板厚 (mm)</th>
+                            <th>数量 (米)</th>
+                            <th>单价 (¥/米)</th>
+                            <th>小计 (¥)</th>
+                            <th style="width:36px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 合计 -->
+            <div class="totals">
+                <div class="totals-box">
+                    <div class="total-row">
+                        <span class="label">产品合计</span>
+                        <span class="value" id="subtotal">¥0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="label">运输 / 其他费用</span>
+                        <span class="value"><input type="number" id="extra-fee" value="0" min="0" step="100" onchange="calcAll()" style="width:90px;text-align:right;padding:4px 8px;border:1px solid #d0d0d0;border-radius:4px;font-size:14px;" /> 元</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="label">税率 (<input type="number" class="tax-input" id="tax-rate" value="13" min="0" max="100" onchange="calcAll()" />%)</span>
+                        <span class="value" id="tax-amount">¥0.00</span>
+                    </div>
+                    <div class="total-row grand">
+                        <span class="label">合计总额</span>
+                        <span class="value" id="grand-total">¥0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 已保存列表 -->
+        <div class="card saved-list" id="saved-list" style="display:none;">
+            <div class="card-title">📂 已保存的报价单</div>
+            <div id="saved-items"></div>
+            <button class="btn btn-outline" style="margin-top:12px;width:100%;" onclick="document.getElementById('saved-list').style.display='none'">收起</button>
+        </div>
+
+        <div class="footer">所有报价单保存在你电脑上 🔒 · 按 Ctrl+P 打印</div>
+    </div>
+
+    <script>
+        // ===== 默认产品模板 =====
+        const DEFAULT_PRODUCTS = [
+            { type: '水平桥架', w: 200, h: 100, thick: 1.1, qty: 50 },
+            { type: '上弯', w: 200, h: 100, thick: 1.1, qty: 10 },
+            { type: '水平三通', w: 200, h: 100, thick: 1.1, qty: 5 },
+            { type: '水平弯', w: 200, h: 100, thick: 1.1, qty: 8 },
+        ];
+
+        let rowCount = 0;
+
+        // ===== 算单价 ⭐ 核心公式——你家厂用了二十年的 =====
+        function calcUnitPrice(w, h, thick) {
+            const steelPrice = parseFloat(document.getElementById('steel-price').value) || 5000;
+            // ((宽+高)×2 + 60折弯) × 板厚 × 7.85钢密度 × (吨价÷1000) ÷ 1000
+            const price = ((parseFloat(w) + parseFloat(h)) * 2 + 60) * parseFloat(thick) * 7.85 * (steelPrice / 1000) / 1000;
+            return Math.round(price);  // 四舍五入到元
+        }
+        function getProductPrice(w, h, thick, productType) {
+            const basePrice = calcUnitPrice(w, h, thick);
+            const ww = parseFloat(w) || 0;
+            let tier;
+            if (ww <= 300) tier = 's';
+            else if (ww <= 600) tier = 'm';
+            else tier = 'l';
+            const map = {
+                '水平桥架': { coeff: 1.0, unit: '米' },
+                '上弯':     { coeff: tier === 's' ? 1.0 : tier === 'm' ? 1.2 : 1.5, unit: '个' },
+                '下弯':     { coeff: tier === 's' ? 1.0 : tier === 'm' ? 1.2 : 1.5, unit: '个' },
+                '水平弯':   { coeff: tier === 's' ? 1.0 : tier === 'm' ? 1.2 : 1.5, unit: '个' },
+                '水平三通': { coeff: tier === 's' ? 1.3 : tier === 'm' ? 1.5 : 1.8, unit: '个' },
+                '大小头':   { coeff: tier === 's' ? 1.0 : tier === 'm' ? 1.2 : 1.5, unit: '个' },
+                '异型弯头': { coeff: tier === 's' ? 1.0 : tier === 'm' ? 1.2 : 1.5, unit: '个' },
+                '异型三通': { coeff: tier === 's' ? 1.3 : tier === 'm' ? 1.5 : 1.8, unit: '个' },
+                '四通':     { coeff: (tier === 's' ? 1.3 : tier === 'm' ? 1.5 : 1.8) * 2, unit: '个' },
+            };
+            const info = map[productType] || { coeff: 1.0, unit: '米' };
+            return { unitPrice: Math.round(basePrice * info.coeff), unit: info.unit };
+        }
+
+        // ===== 初始化表格 =====
+        function initTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            // 直接加 5 行空白的
+            for (let i = 0; i < 5; i++) {
+                addRow({ type: '水平桥架', w: '', h: '', thick: '', qty: '' }, true);
+            }
+            addPlusButton();
+            calcAll();
+        }
+
+        // ===== 添加一行 =====
+        function addRow(data, isNewRow) {
+            data = data || {};
+            const typeVal = data.type || data.productType || '水平桥架';
+            rowCount++;
+            const id = rowCount;
+            const tbody = document.getElementById('table-body');
+            const btnRow = tbody.querySelector('.add-row-row');
+
+            const tr = document.createElement('tr');
+            tr.id = 'row-' + id;
+            tr.innerHTML = `
+                <td style="text-align:center;color:#999;">${id}</td>
+                <td><select style="width:100%;padding:8px 4px;border:1px solid transparent;border-radius:4px;font-size:14px;background:transparent;outline:none;cursor:pointer;min-width:95px;" onchange="calcRow(${id})">
+                    <option value="水平桥架"${typeVal==='水平桥架'?' selected':''}>水平桥架</option>
+                    <option value="上弯"${typeVal==='上弯'?' selected':''}>上弯</option>
+                    <option value="下弯"${typeVal==='下弯'?' selected':''}>下弯</option>
+                    <option value="水平弯"${typeVal==='水平弯'?' selected':''}>水平弯</option>
+                    <option value="水平三通"${typeVal==='水平三通'?' selected':''}>水平三通</option>
+                    <option value="大小头"${typeVal==='大小头'?' selected':''}>大小头</option>
+                    <option value="异型弯头"${typeVal==='异型弯头'?' selected':''}>异型弯头</option>
+                    <option value="异型三通"${typeVal==='异型三通'?' selected':''}>异型三通</option>
+                    <option value="四通"${typeVal==='四通'?' selected':''}>四通</option>
+                </select></td>
+                <td><input type="number" class="w-input" value="${data.w || ''}" min="0" step="10" oninput="calcRow(${id})" /></td>
+                <td><input type="number" class="h-input" value="${data.h || ''}" min="0" step="10" oninput="calcRow(${id})" /></td>
+                <td><input type="number" class="thick-input" value="${data.thick || ''}" min="0" step="0.1" oninput="calcRow(${id})" /></td>
+                <td><input type="number" class="qty-input" value="${data.qty || ''}" min="0" step="1" oninput="calcRow(${id})" /></td>
+                <td><input type="text" id="price-${id}" value="" data-manual="0" style="text-align:right;font-weight:bold;font-size:15px;min-width:90px;border:1px solid transparent;border-radius:4px;background:transparent;" oninput="this.dataset.manual='1';updateSubtotal('${id}');calcAll()" /></td>
+                <td><input type="text" id="sub-${id}" value="" data-manual="0" style="text-align:right;font-weight:bold;font-size:15px;min-width:90px;border:1px solid transparent;border-radius:4px;background:transparent;" oninput="this.dataset.manual='1';calcAll()" /></td>
+                <td><button class="delete-row-btn" onclick="deleteRow(${id})" title="删除">✕</button></td>
+            `;
+
+            if (btnRow) {
+                tbody.insertBefore(tr, btnRow);
+            } else {
+                tbody.appendChild(tr);
+            }
+
+            if (data.w && data.h && data.thick) calcRow(id);
+        }
+
+        function addEmptyRow() {
+            addRow({ type: '水平桥架', w: '', h: '', thick: '', qty: '' }, true);
+            renumberRows();
+        }
+
+        function addPlusButton() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML += `
+                <tr class="add-row-row">
+                    <td colspan="9"><button class="add-row-btn" onclick="addEmptyRow()">＋ 添加一行</button></td>
+                </tr>
+            `;
+        }
+
+        // ===== 算一行的单价和金额 =====
+        let _guard = false; // 防止死循环
+
+        function calcRowPrice(id) {
+            const row = document.getElementById('row-' + id);
+            if (!row) return;
+
+            const selectEl = row.querySelector('select');
+            const productType = selectEl ? selectEl.value : '水平桥架';
+            const wInput = row.querySelector('.w-input');
+            const hInput = row.querySelector('.h-input');
+            const thickInput = row.querySelector('.thick-input');
+            const qtyInput = row.querySelector('.qty-input');
+            const w = wInput ? parseFloat(wInput.value) : 0;
+            const h = hInput ? parseFloat(hInput.value) : 0;
+            const thick = thickInput ? parseFloat(thickInput.value) : 0;
+            const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : 0;
+
+            const priceEl = document.getElementById('price-' + id);
+            const subEl = document.getElementById('sub-' + id);
+
+            if (w && h && thick) {
+                const result = getProductPrice(w, h, thick, productType);
+                const subtotal = result.unitPrice * qty;
+                if (priceEl && priceEl.dataset.manual !== '1') {
+                    priceEl.value = '¥' + result.unitPrice + '/' + result.unit;
+                }
+                if (subEl && subEl.dataset.manual !== '1') {
+                    subEl.value = subtotal > 0 ? '¥' + subtotal.toFixed(2) : '';
+                }
+            } else {
+                if (priceEl && priceEl.dataset.manual !== '1') priceEl.value = '';
+                if (subEl && subEl.dataset.manual !== '1') subEl.value = '';
+            }
+        }
+
+        function calcRow(id) {
+            const priceEl = document.getElementById('price-' + id);
+            const subEl = document.getElementById('sub-' + id);
+            if (priceEl) priceEl.dataset.manual = '0';
+            if (subEl) subEl.dataset.manual = '0';
+            calcRowPrice(id);
+            calcAll();
+        }
+
+        // 手动改单价时重新算小计
+        function updateSubtotal(id) {
+            const priceEl = document.getElementById('price-' + id);
+            const subEl = document.getElementById('sub-' + id);
+            const row = document.getElementById('row-' + id);
+            if (!priceEl || !subEl || !row) return;
+            const qtyInput = row.querySelector('.qty-input');
+            const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : 0;
+            const priceMatch = (priceEl.value || '').match(/¥(d+)/);
+            const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;
+            subEl.value = unitPrice > 0 && qty > 0 ? '¥' + (unitPrice * qty).toFixed(2) : '';
+        }
+
+        // ===== 算全部合计 =====
+        function calcAll() {
+            if (_guard) return;
+            _guard = true;
+
+            let subtotalSum = 0;
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+
+            rows.forEach(row => {
+                // 钢价变了，每行单价全部重算
+                const rowIdMatch = row.id.match(/^row-(\d+)$/);
+                if (rowIdMatch) {
+                    calcRowPrice(parseInt(rowIdMatch[1]));
+                }
+
+                const subCell = row.querySelector('[id^="sub-"]');
+                if (subCell) {
+                    const val = parseFloat((subCell.value || '').replace('¥', '')) || 0;
+                    subtotalSum += val;
+                }
+            });
+
+            _guard = false;
+
+            const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
+            const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+            const productTotal = subtotalSum + extraFee;
+            const taxAmount = productTotal * (taxRate / 100);
+            const grandTotal = productTotal + taxAmount;
+
+            document.getElementById('subtotal').textContent = '¥' + subtotalSum.toFixed(2);
+            document.getElementById('tax-amount').textContent = '¥' + taxAmount.toFixed(2);
+            document.getElementById('grand-total').textContent = '¥' + grandTotal.toFixed(2);
+        }
+
+        // ===== 删除一行 =====
+        function renumberRows() {
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+            let n = 0;
+            rows.forEach(row => {
+                const td = row.querySelector('td'); // 第一个单元格就是序号
+                if (td && !isNaN(parseInt(td.textContent.trim()))) {
+                    n++;
+                    td.textContent = n;
+                }
+            });
+        }
+
+        function deleteRow(id) {
+            const row = document.getElementById('row-' + id);
+            if (row) { row.remove(); renumberRows(); calcAll(); }
+        }
+
+        // ===== 一键导出（发给本地服务，自动生成 xlsx 并打开） =====
+        async function exportServer() {
+            const customer = document.getElementById('customer-name').value.trim() || '';
+            const phone = document.getElementById('customer-phone').value.trim() || '';
+            const date = document.getElementById('quote-date').value || '';
+            const remark = document.getElementById('remark').value.trim() || '';
+            const projectName = document.getElementById('project-name').value.trim() || '';
+            const projectAddr = document.getElementById('project-addr').value.trim() || '';
+
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+            const items = [];
+            rows.forEach(row => {
+                const wInput = row.querySelector('.w-input');
+                if (wInput && parseFloat(wInput.value)) {
+                    const hInput = row.querySelector('.h-input');
+                    const thickInput = row.querySelector('.thick-input');
+                    const qtyInput = row.querySelector('.qty-input');
+                    const selectEl = row.querySelector('select');
+                    const pt = selectEl ? selectEl.value : '水平桥架';
+                    const pp = getProductPrice(parseFloat(wInput.value), parseFloat(hInput.value), parseFloat(thickInput.value), pt);
+                    items.push({
+                        type: pt,
+                        w: parseFloat(wInput.value),
+                        h: parseFloat(hInput.value),
+                        thick: parseFloat(thickInput.value),
+                        qty: parseFloat(qtyInput.value) || 0,
+                        unitPrice: pp.unitPrice, unit: pp.unit,
+                    });
+                }
+            });
+
+            const data = { customer, phone, date, remark, projectName, projectAddr, items };
+
+            try {
+                showToast('📡 正在生成...');
+                const resp = await fetch('http://localhost:9876/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const text = await resp.text();
+                if (text.startsWith('OK:')) {
+                    showToast('✅ Excel 已生成并打开！');
+                } else {
+                    showToast('❌ 服务没启动，请先双击 启动服务.bat');
+                }
+            } catch (e) {
+                showToast('❌ 请先双击 AI小项目 里的"启动服务.bat"');
+            }
+        }
+
+        // ===== 导出 Excel（备用） =====
+        function exportExcel() {
+            const customer = document.getElementById('customer-name').value.trim() || '';
+            const phone = document.getElementById('customer-phone').value.trim() || '';
+            const date = document.getElementById('quote-date').value || '';
+            const remark = document.getElementById('remark').value.trim() || '';
+            const projectName = document.getElementById('project-name').value.trim() || '';
+            const projectAddr = document.getElementById('project-addr').value.trim() || '';
+
+            // 收集产品行
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+            const items = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length >= 5 && parseFloat(inputs[1].value)) {
+                    items.push({
+                        name: inputs[0].value.trim() || '水平桥架',
+                        spec: inputs[1].value + '×' + inputs[2].value + '×' + inputs[3].value,
+                        qty: parseFloat(inputs[4].value) || 0,
+                        price: calcUnitPrice(parseFloat(inputs[1].value), parseFloat(inputs[2].value), parseFloat(inputs[3].value)),
+                    });
+                }
+            });
+
+            let sum = 0;
+            let dataRows = '';
+            items.forEach((it, i) => {
+                const amt = it.price * it.qty;
+                sum += amt;
+                dataRows += '<tr>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + (i + 1) + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + it.name + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + it.spec + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">米</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + it.qty + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + it.price + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;">' + amt.toFixed(2) + '</td>';
+                dataRows += '<td align="center" style="font-family:宋体;font-size:11pt;border:1px solid #000;"></td>';
+                dataRows += '</tr>';
+            });
+
+            const grandTotal = sum + extraFee;
+
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>';
+
+            // 标题
+            html += '<table border="0" cellpadding="0" cellspacing="0" width="100%">';
+            html += '<tr><td colspan="8" align="center" style="font-size:16pt;font-family:黑体;font-weight:bold;padding:8px;">桥架报价表</td></tr>';
+
+            // 公司信息行 2
+            html += '<tr>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">询价单位：' + customer + '</td>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">报价单位：成都华厦许氏电器制造有限公司</td>';
+            html += '</tr>';
+
+            // 行 3
+            html += '<tr>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">项目名称：' + projectName + '</td>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">单位地址：金牛区金府机电城B区28栋10号</td>';
+            html += '</tr>';
+
+            // 行 4
+            html += '<tr>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">项目地址：' + projectAddr + '</td>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">联系人：许经理</td>';
+            html += '</tr>';
+
+            // 行 5：联系人和报价日期
+            html += '<tr>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">联系人及电话：' + phone + '</td>';
+            html += '<td colspan="4" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">电话：13709028605 15184411678</td>';
+            html += '</tr>';
+
+            // 行 6：报价日期
+            html += '<tr>';
+            html += '<td colspan="8" align="left" style="font-family:黑体;font-size:12pt;padding:4px;">报价日期：' + date + '&nbsp;&nbsp;&nbsp;&nbsp;板材价格：' + steelPrice + ' 元/吨</td>';
+            html += '</tr>';
+
+            html += '</table><br/>';
+
+            // 产品表格
+            html += '<table border="1" cellpadding="4" cellspacing="0" width="100%" style="border-collapse:collapse;">';
+
+            // 表头
+            html += '<tr style="background:#f0f0f0;font-family:黑体;font-size:11pt;font-weight:bold;">';
+            html += '<td align="center" style="border:1px solid #000;">序号</td>';
+            html += '<td align="center" style="border:1px solid #000;">名称</td>';
+            html += '<td align="center" style="border:1px solid #000;">规格型号</td>';
+            html += '<td align="center" style="border:1px solid #000;">单位</td>';
+            html += '<td align="center" style="border:1px solid #000;">数量</td>';
+            html += '<td align="center" style="border:1px solid #000;">单价</td>';
+            html += '<td align="center" style="border:1px solid #000;">金额</td>';
+            html += '<td align="center" style="border:1px solid #000;">备注</td>';
+            html += '</tr>';
+
+            html += dataRows;
+
+            // 以上小计
+            html += '<tr style="font-family:黑体;font-size:11pt;font-weight:bold;">';
+            html += '<td colspan="6" align="right" style="border:1px solid #000;background:#FFEB9C;">以上小计</td>';
+            html += '<td align="center" style="border:1px solid #000;background:#FFEB9C;">' + sum.toFixed(2) + '</td>';
+            html += '<td align="center" style="border:1px solid #000;background:#FFEB9C;"></td>';
+            html += '</tr>';
+
+            html += '</table><br/>';
+
+            // 备注
+            html += '<table border="0" cellpadding="0" cellspacing="0" width="100%">';
+            html += '<tr><td colspan="8" style="font-size:11pt;padding:4px;">备注：1、以上报价为成品厚度，含连接片、螺栓、盖板。</td></tr>';
+            if (remark) {
+                html += '<tr><td colspan="8" style="font-size:11pt;padding:4px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2、' + remark + '</td></tr>';
+            }
+            html += '</table>';
+
+            html += '</body></html>';
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (customer || '报价单') + '_桥架报价_' + date + '.xls';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('📥 Excel 已下载');
+        }
+
+        // ===== 保存 =====
+        function saveQuotation() {
+            const customer = document.getElementById('customer-name').value.trim();
+            if (!customer) { showToast('⚠️ 请填写客户名称'); return; }
+
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+            const items = [];
+            rows.forEach(row => {
+                const wInput = row.querySelector('.w-input');
+                if (wInput && parseFloat(wInput.value)) {
+                    const hInput = row.querySelector('.h-input');
+                    const thickInput = row.querySelector('.thick-input');
+                    const qtyInput = row.querySelector('.qty-input');
+                    const selectEl = row.querySelector('select');
+                    const w = parseFloat(wInput.value);
+                    const h = parseFloat(hInput.value);
+                    const thick = parseFloat(thickInput.value);
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const pt = selectEl ? selectEl.value : '水平桥架';
+                    if (w && h && thick) {
+                        const pp = getProductPrice(w, h, thick, pt);
+                        items.push({
+                            type: pt,
+                            w, h, thick, qty,
+                            unitPrice: pp.unitPrice, unit: pp.unit
+                        });
+                    }
+                }
+            });
+
+            if (items.length === 0) { showToast('⚠️ 请填写至少一行'); return; }
+
+            const quote = {
+                id: Date.now(),
+                customer,
+                phone: document.getElementById('customer-phone').value.trim(),
+                date: document.getElementById('quote-date').value,
+                projectName: document.getElementById('project-name').value.trim(),
+                projectAddr: document.getElementById('project-addr').value.trim(),
+                steelPrice: document.getElementById('steel-price').value,
+                taxRate: document.getElementById('tax-rate').value,
+                extraFee: document.getElementById('extra-fee').value,
+                remark: document.getElementById('remark').value.trim(),
+                items,
+                total: parseFloat(document.getElementById('grand-total').textContent.replace('¥', '')) || 0,
+                savedAt: new Date().toLocaleString('zh-CN')
+            };
+
+            let quotes = JSON.parse(localStorage.getItem('bridge_quotes') || '[]');
+            quotes.unshift(quote);
+            if (quotes.length > 20) quotes.pop();
+            localStorage.setItem('bridge_quotes', JSON.stringify(quotes));
+            showToast('✅ 已保存：' + customer);
+        }
+
+        // ===== 加载列表 =====
+        function loadList() {
+            const quotes = JSON.parse(localStorage.getItem('bridge_quotes') || '[]');
+            const container = document.getElementById('saved-items');
+            const panel = document.getElementById('saved-list');
+
+            if (quotes.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">暂无已保存的报价单</div>';
+            } else {
+                let html = '';
+                quotes.forEach((q, i) => {
+                    html += `
+                        <div class="saved-item" onclick="loadQuote(${i})">
+                            <div>
+                                <div class="saved-name">${escapeHtml(q.customer)}</div>
+                                <div class="saved-meta">${q.date} · ${q.items.length}项 · 板材${q.steelPrice}元/吨 · ${q.savedAt}</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <span class="saved-total">¥${q.total.toFixed(2)}</span>
+                                <button class="delete-row-btn" onclick="event.stopPropagation();deleteQuote(${q.id})">🗑️</button>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html;
+            }
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ===== 加载某份报价 =====
+        function loadQuote(index) {
+            const quotes = JSON.parse(localStorage.getItem('bridge_quotes') || '[]');
+            const q = quotes[index]; if (!q) return;
+
+            document.getElementById('customer-name').value = q.customer;
+            document.getElementById('customer-phone').value = q.phone || '';
+            document.getElementById('quote-date').value = q.date || '';
+            document.getElementById('steel-price').value = q.steelPrice || 5000;
+            document.getElementById('tax-rate').value = q.taxRate || 13;
+            document.getElementById('extra-fee').value = q.extraFee || 0;
+            document.getElementById('remark').value = q.remark || '';
+            document.getElementById('project-name').value = q.projectName || '';
+            document.getElementById('project-addr').value = q.projectAddr || '';
+
+            rowCount = 0;
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            q.items.forEach(it => addRow({ type: it.type || '水平桥架', w: it.w, h: it.h, thick: it.thick, qty: it.qty }));
+            addEmptyRow();
+            addPlusButton();
+            calcAll();
+            document.getElementById('saved-list').style.display = 'none';
+            showToast('📂 已加载：' + q.customer);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== 删除报价 =====
+        function deleteQuote(id) {
+            if (!confirm('确定删除？')) return;
+            let quotes = JSON.parse(localStorage.getItem('bridge_quotes') || '[]');
+            quotes = quotes.filter(q => q.id !== id);
+            localStorage.setItem('bridge_quotes', JSON.stringify(quotes));
+            loadList();
+        }
+
+        function escapeHtml(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+        function showToast(m) {
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = m;
+            document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
+        }
+
+        // ===== 启动 =====
+        document.getElementById('quote-date').value = new Date().toISOString().split('T')[0];
+        initTable();
+    </script>
+
+</body>
+</html>
