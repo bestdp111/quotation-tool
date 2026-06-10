@@ -630,6 +630,7 @@
             const projectName = document.getElementById('project-name').value.trim() || '';
             const projectAddr = document.getElementById('project-addr').value.trim() || '';
             const steelPrice = document.getElementById('steel-price').value || '5000';
+            const extraFee = parseFloat(document.getElementById('extra-fee').value) || 0;
 
             const rows = document.getElementById('table-body').querySelectorAll('tr');
             const items = [];
